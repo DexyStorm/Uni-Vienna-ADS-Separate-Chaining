@@ -824,7 +824,7 @@ public:
 
    }
 
-#if 0
+/*
    //ALTES SWAP
    //phase 2
    //vertauscht die elemente von "this" mit den elementen von "other"
@@ -989,7 +989,7 @@ public:
       incinerate(temp, temp_max_sz);
 
    }
-#endif
+*/
 
 
    //ph2
@@ -1170,9 +1170,10 @@ public:
       table_iterator{table_ptr}, 
       list_iterator{list_ptr}
       {
-         
          if(table_iterator != nullptr)                //if table_iterator is pointing to the table
          {
+            /*
+            //dont need this stuff. just call skip_iterator(); instead
             if(table_ptr->mode == Mode::free)
             {
                while(table_iterator->mode == Mode::free) //while the mode of table_iterator is Mode::free
@@ -1181,9 +1182,14 @@ public:
                }
                list_iterator = table_iterator;           //list_iterator points now to table_iterator because if you didnt give a valid table_ptr, you 4 sure didnt give a valid list_ptr
             }
-            
-         }
+            */
 
+            if(table_iterator->mode == Mode::free)
+            {
+               //skip_iterator();   //dont need
+               skip_table();        //skip_table(); is enough
+            }
+         }
          if(list_iterator == nullptr)
          {
             list_iterator = table_iterator;
@@ -1194,15 +1200,35 @@ public:
 
       //methods
 
-      //skips to the next used bucket
+      //skips to the next entry in the table which has mode::used
       void skip_table()
       {
-         ++table_iterator;
-         while(table_iterator->mode == Mode::free)
-         {
+         while(table_iterator->mode == Mode::free) //while the mode of table_iterator is Mode::free
+         {                                         //point to the next entry
             ++table_iterator;
          }
-         list_iterator = table_iterator;
+         list_iterator = table_iterator;           //list_iterator points now to table_iterator because if you didnt give a valid table_ptr, you 4 sure didnt give a valid list_ptr
+      }
+
+      //skips to the next bucket which is used
+      Iterator skip_iterator()
+      {
+         if(list_iterator->mode == Mode::end)
+         {
+            throw std::runtime_error("cant increment because list_iterator is already at end. thrown from 'skip_iterator'");
+         }
+         if(list_iterator->next_ptr != nullptr) //if the next bucket in the list exists
+         {
+            list_iterator = list_iterator->next_ptr;  //list_iterator now points to next bucket
+            return *this;
+         }
+         else                                //if next bucket in the list does not exist
+         {
+            ++table_iterator;                //goes to the next entry in the table cuz u need to manually so that table_iterator->mode is no longer Mode::free
+            skip_table();                    //before it goes into the while(table_iterator->mode == Mode::free) loop which is in skip_table();
+            //list_iterator = table_iterator; //dont need this cuz skip_table already does this
+         }
+         return *this;
       }
 
       reference operator*() const
@@ -1225,6 +1251,8 @@ public:
 
       Iterator &operator++()
       {
+         /*
+         //dont need this. just call skip_iterator
          if(list_iterator->mode == Mode::end)
          {
             throw std::runtime_error("cant increment because list_iterator is already at end. thrown from 'Iterator &operator++()'");
@@ -1244,18 +1272,28 @@ public:
             list_iterator = table_iterator;
          }
          return *this;
+         */
+
+         skip_iterator();
+         return *this;
       }
 
       Iterator operator++(int)
       {
-
+         //unnoetig weil schon im skip_iterator geprueft wird
+         //aber safety first oder so ka
          if(list_iterator->mode == Mode::end)
          {
             throw std::runtime_error("cant increment because list_iterator is already at end. thrown from 'Iterator operator++(int)'");
          }
          
+         
          auto iterator_to_return {*this};
 
+         skip_iterator();
+
+         /*
+         //brauchste nicht. machs einfach mit skip_iterator. ist schoener 
          if(list_iterator->next_ptr != nullptr) //if the next bucket in the list exists
          {
             list_iterator = list_iterator->next_ptr;  //list_iterator now points to next bucket
@@ -1269,6 +1307,7 @@ public:
             }              
             list_iterator = table_iterator;     
          }
+         */
          return iterator_to_return;
       }
 
