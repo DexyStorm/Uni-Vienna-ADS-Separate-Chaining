@@ -61,6 +61,11 @@ FERTIG. JETZT NUR NOCH SACHEN AUSBESSERN
 2) operator == hasht unnoetig. kann man fixen
 */
 
+/*
+muss noch im nachhinein fixen:
+operator
+*/
+
 
 
 
@@ -502,6 +507,9 @@ public:
 
    }
 
+
+
+/*
    //kopierzuweisungsoperator
    //also basically das gleiche wie 4ter konstruktor
    //this = other
@@ -553,8 +561,21 @@ public:
       this->current_sz = other.current_sz;
       this->max_sz = other.max_sz;
       this->max_lf = other.max_lf;
+      
+      this_table_ptr = (table + max_sz);
+      this_table_ptr->mode = Mode::end;
+      
       return *this;
    }
+*/
+
+   //copy and swap goes brr
+	ADS_set &operator=(const ADS_set &other)
+	{
+      ADS_set tmp{other};
+      this->swap(tmp);
+      return *this;
+	}
 
    //der inhalt des containers wird durch die elemente aus ilist ersetzt
    ADS_set &operator=(std::initializer_list<key_type> ilist)
@@ -824,173 +845,6 @@ public:
 
    }
 
-/*
-   //ALTES SWAP
-   //phase 2
-   //vertauscht die elemente von "this" mit den elementen von "other"
-   //swap(this,other);
-   void swap(ADS_set &other)
-   {
-      //std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA SWAP WIRD VERWENDET" << std::endl;
-      
-      //DER VORGANG: (checks out)
-      //alles von other kommt in temp
-      //alles von this kommt in other
-      //alles von temp kommt in this
-      //loesche temp
-      
-      Bucket* this_table_ptr {this->table};
-      Bucket* this_list_ptr {this_table_ptr};
-      Bucket* other_table_ptr {other.table};
-      Bucket* other_list_ptr {other_table_ptr};
-      
-      
-      //alles von other kommt in temp
-      //preparation
-      Bucket* temp {new Bucket[other.max_sz]};  //das ist das neue temporaere array //Bucket* temp {new Bucket[other.max_sz+1]}; ?
-      Bucket* temp_table_ptr {temp};
-      Bucket* temp_list_ptr {temp_table_ptr};
-
-      //variablos
-      size_type temp_max_sz {other.max_sz};
-      double temp_max_lf {other.max_lf};
-      size_type temp_current_sz {other.current_sz};
-
-      for(size_type i {0}; i<other.max_sz; ++i)
-      {
-         if(other_list_ptr->mode == Mode::used)
-         {
-            do
-            {
-               temp_list_ptr->data = other_list_ptr->data;
-               if(other_list_ptr->next_ptr != nullptr)
-               {
-                  temp_list_ptr->mode = other_list_ptr->mode;
-                  Bucket* temp_new_next_bucket {new Bucket}; //das ist das neue bucket
-                  temp_list_ptr->next_ptr = temp_new_next_bucket; //temp_list_ptr->ptr zeigt auf das naechste bucket
-                  temp_list_ptr = temp_list_ptr->next_ptr;
-                  other_list_ptr = other_list_ptr->next_ptr;
-
-               }
-               else                                   //bin mir sehr sicher dass ich das else hier
-               {                                      //und das was in der klammer von else ist wegmachen kann
-                  temp_list_ptr->next_ptr = nullptr;
-                  temp_list_ptr->mode = other_list_ptr->mode;
-                  other_list_ptr = other_list_ptr->next_ptr;
-               }
-            }
-            while (other_list_ptr != nullptr);
-         }
-            
-         ++temp_table_ptr;    //scahltet den pointer auf den naechsten eintrag in die table
-         ++other_table_ptr;   //scahltet den pointer auf den naechsten eintrag in die table
-
-         temp_list_ptr = temp_table_ptr;     //"resettet" den pointer zurrueck zur anfang der liste aber beim naechsten table eintrag
-         other_list_ptr = other_table_ptr;   //"resettet" den pointer zurrueck zur anfang der liste aber beim naechsten table eintrag
-      }
-      //loescht other
-      incinerate(other.table, other.max_sz);
-
-      //alles von this kommt in other
-      //preparation
-      other.table = new Bucket[this->max_sz+1];
-      other_table_ptr = other.table;
-      other_list_ptr = other_table_ptr;
-      this_table_ptr = this->table;
-      this_list_ptr = this_table_ptr;
-
-      //variablos
-      other.current_sz = this->current_sz;
-      other.max_lf = this->max_lf;
-      other.max_sz = this->max_sz;
-      for(size_type i {0}; i<this->max_sz; ++i)
-      {
-         if(this_list_ptr->mode == Mode::used)
-         {
-            do
-            {
-               other_list_ptr->data = this_list_ptr->data;
-               if(this_list_ptr->next_ptr != nullptr)
-               {
-                  other_list_ptr->mode = this_list_ptr->mode;
-                  Bucket* other_new_next_bucket {new Bucket}; //das ist das neue bucket
-                  other_list_ptr->next_ptr = other_new_next_bucket; //other_list_ptr->ptr zeigt auf das naechste bucket
-                  other_list_ptr = other_list_ptr->next_ptr;
-                  this_list_ptr = this_list_ptr->next_ptr;
-
-               }
-               else                                   //bin mir sehr sicher dass ich das else hier
-               {                                      //und das was in der klammer von else ist wegmachen kann
-                  other_list_ptr->next_ptr = nullptr;
-                  other_list_ptr->mode = this_list_ptr->mode;
-                  this_list_ptr = this_list_ptr->next_ptr;
-               }
-
-            }
-            while (this_list_ptr != nullptr);
-         }
-
-         ++other_table_ptr;    //scahltet den pointer auf den naechsten eintrag in die table
-         ++this_table_ptr;   //scahltet den pointer auf den naechsten eintrag in die table
-
-         other_list_ptr = other_table_ptr;     //"resettet" den pointer zurrueck zur anfang der liste aber beim naechsten table eintrag
-         this_list_ptr = this_table_ptr;   //"resettet" den pointer zurrueck zur anfang der liste aber beim naechsten table eintrag
-      }
-      other.table[other.max_sz].mode = Mode::end;
-
-      //deletes old this table
-      incinerate(this->table, this->max_sz);
-
-      //alles von temp kommt in this
-      //preparation
-      this->table = new Bucket[temp_max_sz+1];
-      temp_table_ptr = temp;
-      temp_list_ptr = temp_table_ptr;
-      this_table_ptr = this->table;
-
-      //variablos
-      this->max_sz = temp_max_sz;
-      this->max_lf = temp_max_lf;
-      this->current_sz = temp_current_sz;
-      
-      this_list_ptr = this_table_ptr;
-      for(size_type i {0}; i<temp_max_sz; ++i)
-      {
-         do
-         {
-            this_list_ptr->data = temp_list_ptr->data;
-            if(temp_list_ptr->next_ptr != nullptr)
-            {
-               this_list_ptr->mode = temp_list_ptr->mode;
-               Bucket* this_new_next_bucket {new Bucket}; //das ist das neue bucket
-               this_list_ptr->next_ptr = this_new_next_bucket; //this_list_ptr->ptr zeigt auf das naechste bucket
-               this_list_ptr = this_list_ptr->next_ptr;
-               temp_list_ptr = temp_list_ptr->next_ptr;
-
-            }
-            else                                   //bin mir sehr sicher dass ich das else hier
-            {                                      //und das was in der klammer von else ist wegmachen kann
-               this_list_ptr->next_ptr = nullptr;
-               this_list_ptr->mode = temp_list_ptr->mode;
-               temp_list_ptr = temp_list_ptr->next_ptr;
-            }
-
-         }
-         while (temp_list_ptr != nullptr);
-
-         ++this_table_ptr;    //scahltet den pointer auf den naechsten eintrag in die table
-         ++temp_table_ptr;   //scahltet den pointer auf den naechsten eintrag in die table
-
-         this_list_ptr = this_table_ptr;     //"resettet" den pointer zurrueck zur anfang der liste aber beim naechsten table eintrag
-         temp_list_ptr = temp_table_ptr;   //"resettet" den pointer zurrueck zur anfang der liste aber beim naechsten table eintrag
-      }
-      table[max_sz].mode = Mode::end;
-
-      incinerate(temp, temp_max_sz);
-
-   }
-*/
-
 
    //ph2
    //NEUES OPERATOR==
@@ -1150,6 +1004,17 @@ public:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
    //CLASS ITERATOR
    //template <typename Key, size_t N>
    class Iterator
@@ -1200,6 +1065,19 @@ public:
 
       //methods
 
+      Iterator &operator++()
+      {
+         skip_iterator();
+         return *this;
+      }
+
+      Iterator operator++(int)
+      {
+         auto iterator_to_return {*this};
+         ++*this;
+         return iterator_to_return;
+      }
+
       //skips to the next entry in the table which has mode::used
       void skip_table()
       {
@@ -1247,68 +1125,6 @@ public:
             throw std::runtime_error("cant get data because list_iterator is already at end. thrown from 'pointer operator->() const'");
          }
          return &list_iterator->data;
-      }
-
-      Iterator &operator++()
-      {
-         /*
-         //dont need this. just call skip_iterator
-         if(list_iterator->mode == Mode::end)
-         {
-            throw std::runtime_error("cant increment because list_iterator is already at end. thrown from 'Iterator &operator++()'");
-         }
-         if(list_iterator->next_ptr != nullptr) //if the next bucket in the list exists
-         {
-            list_iterator = list_iterator->next_ptr;  //list_iterator now points to next bucket
-            return *this;
-         }
-         else                                   //if next bucket in the list does not exist
-         {
-            ++table_iterator;
-            while(table_iterator->mode == Mode::free) //.skip didnt work //find next bucket in the table that has Mode::used
-            {
-               ++table_iterator;
-            }              
-            list_iterator = table_iterator;
-         }
-         return *this;
-         */
-
-         skip_iterator();
-         return *this;
-      }
-
-      Iterator operator++(int)
-      {
-         //unnoetig weil schon im skip_iterator geprueft wird
-         //aber safety first oder so ka
-         if(list_iterator->mode == Mode::end)
-         {
-            throw std::runtime_error("cant increment because list_iterator is already at end. thrown from 'Iterator operator++(int)'");
-         }
-         
-         
-         auto iterator_to_return {*this};
-
-         skip_iterator();
-
-         /*
-         //brauchste nicht. machs einfach mit skip_iterator. ist schoener 
-         if(list_iterator->next_ptr != nullptr) //if the next bucket in the list exists
-         {
-            list_iterator = list_iterator->next_ptr;  //list_iterator now points to next bucket
-         }
-         else                                   //if next bucket in the list does not exist
-         {
-            ++table_iterator;
-            while(table_iterator->mode == Mode::free) //.skip didnt work //find next bucket in the table that has Mode::used
-            {
-               ++table_iterator;
-            }              
-            list_iterator = table_iterator;     
-         }
-         */
-         return iterator_to_return;
       }
 
       friend bool operator==(const Iterator&lhs, const Iterator&rhs)
