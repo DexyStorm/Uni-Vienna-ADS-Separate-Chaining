@@ -43,13 +43,13 @@ den kommentar bei template wegmachen
 27) CHECK dekonstruktor hat somehow immer noch memory leaks :pepehands: nevermind der memory leak war in add. habe da den bucket_to_add nicht deleted wenns nicht gepasst hat
 28) CHECK iterator ctor kaputt
 29) CHECK std::pair<iterator,bool> insert(const key_type &data_to_be_inserted insertet anscheinend nicht
-30) vielleicht std::pair<iterator,bool> insert(const key_type &data_to_be_inserted) umschreiben weil es ist nicht besonders effizient mit den breaks;. 
+30) vielleicht std::pair<iterator,bool> insert(const key_type &data_to_be_inserted) umschreiben weil es ist nicht besonders effizient mit den breaks;.
     vielleicht statt while(list_ptr->mode == Mode::used)    while(list_ptr->next_ptr != nullptr) machen?
-31) CHECK friend bool operator==(const ADS_set &lhs, const ADS_set &rhs) passt nicht. 
+31) CHECK friend bool operator==(const ADS_set &lhs, const ADS_set &rhs) passt nicht.
 32) CHECK ADS_set &operator=(const ADS_set &other). clear() hat am anfang gefehlt
 33) CHECK erase geht schon wieder nicht.
 34) CHECK swap geht nicht. der fehler war in ADS_set &operator=(const ADS_set &other) und nicht in other (i think)
-35) ADS_set &operator=(const ADS_set &other) ist nicht effizient weil ich clear gecallt habe und dann nochmal die table deleted habe und dann nochmal 
+35) ADS_set &operator=(const ADS_set &other) ist nicht effizient weil ich clear gecallt habe und dann nochmal die table deleted habe und dann nochmal
     die table mit der richtigen groesse erstellt habe. falls es performance probleme gibt eventuell aendern.
 36) std::pair<iterator,bool> insert(const key_type &data_to_be_inserted) funzt nicht
 37) CHECK MOTHERFUCKER B) swap immer noch kaputt
@@ -77,8 +77,8 @@ class ADS_set
 const std::vector<std::string> Mode_Vector
 {
    "end",
-   "free", 
-   "used" 
+   "free",
+   "used"
 };
 
 enum class Mode
@@ -87,12 +87,12 @@ enum class Mode
    free,
    used
 };
-*/ 
+*/
 
 const std::vector<std::string> Mode_Vector
 {
-   "free", 
-   "used", 
+   "free",
+   "used",
    "end"
 };
 
@@ -100,7 +100,7 @@ enum class Mode
 {
    free,
    used,
-   end 
+   end
 };
 
 
@@ -123,7 +123,7 @@ public:
 
 //private:
 
-	//instanzvariablen
+  //instanzvariablen
 	struct Bucket
 	{
       key_type data;
@@ -164,7 +164,7 @@ public:
          //if(*ilist_ptr) == 0)
          //{
             add(*ilist_ptr);
-         //}  
+         //}
       }
       table[max_sz].mode = Mode::end;
    }
@@ -235,7 +235,7 @@ public:
 
       this_table_ptr = (table + max_sz);
       this_table_ptr->mode = Mode::end;
-      
+
    }
 
    //scuffed dekonstruktor. funktioniert jetzt
@@ -276,7 +276,7 @@ public:
    }
 
    //methoden
-
+private:
    //wie der dekonstruktor, nur als methode
    void incinerate(Bucket* &table, const size_t& max_sz)
    {
@@ -327,7 +327,7 @@ public:
       size_type index {hash(data_to_insert)}; //data wird gehasht um den index rauszufinden
 
       Bucket* bucket_ptr {this->table + index}; //zeigt auf den ersten bucket in der liste
-      
+
 
       //falls der erste bucket direkt frei ist dann mach dashier
       if(bucket_ptr->mode == Mode::free)
@@ -506,7 +506,7 @@ public:
 
 
    }
-
+public:
 
 
 /*
@@ -561,10 +561,10 @@ public:
       this->current_sz = other.current_sz;
       this->max_sz = other.max_sz;
       this->max_lf = other.max_lf;
-      
+
       this_table_ptr = (table + max_sz);
       this_table_ptr->mode = Mode::end;
-      
+
       return *this;
    }
 */
@@ -584,7 +584,7 @@ public:
       {                                                                                //ueberschreiten wuerde, dann muss mehr speicher reserved werden
          this->reserve((ilist.size()+1)*2);
       }
-      
+
       //
       this->clear(); //WEISS NICHT OB ICH ES CLEAREN SOLL ODER NICHT
       //             //JA SOLLST DU DU RETARD
@@ -595,7 +595,7 @@ public:
          //{
             add(*ilist_ptr);
          //}
-         
+
       }
 
       return *this;
@@ -625,7 +625,7 @@ public:
          //{
             add(*it);
          //}
-         
+
       }
    }
 
@@ -652,6 +652,7 @@ public:
       return 0;
    }
 
+private:
    Bucket* locate(const key_type& data_to_be_searched)
    {
       size_type index {hash(data_to_be_searched)};
@@ -671,6 +672,7 @@ public:
       }
       return nullptr;
    }
+public:
 
    //fuegt elemente aus ilist ein
    void insert(std::initializer_list<key_type> ilist)   //void insert(std::initializer_list<key_type> ilist);
@@ -681,7 +683,7 @@ public:
          //{
             add(*ilist_ptr);
          //}
-         
+
       }
    }
 
@@ -742,7 +744,7 @@ public:
       Bucket* previous_list_ptr{this->table + index};
       Bucket* list_ptr {nullptr};
       Bucket* next_list_ptr{nullptr};
-      
+
 
       if(previous_list_ptr->mode == Mode::used) //falls die liste am index am anfang direkt leer ist kann abgebrochen werden
       {
@@ -778,7 +780,7 @@ public:
             current_sz = current_sz - 1;
             return 1;
          }
-         
+
          if(previous_list_ptr->next_ptr == nullptr)
          {
             return 0;
@@ -813,7 +815,7 @@ public:
    void swap(ADS_set &other)
    {
       //std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA SWAP WIRD VERWENDET" << std::endl;
-      
+
       //DER VORGANG: (checks out)
       //alles von other kommt in temp
       //alles von this kommt in other
@@ -824,7 +826,7 @@ public:
       //temp zeigt auf other
       //other zeigt auf this
       //this zeigt auf temp
-      
+
       //temp zeigt auf other
       Bucket* temp_table_pointer = other.table;
       size_t temp_max_sz {other.max_sz};
@@ -851,17 +853,17 @@ public:
    //basically von polaschek geflaucht
    friend bool operator==(const ADS_set &lhs, const ADS_set &rhs)
    {
-      if (lhs.current_sz != rhs.current_sz) 
+      if (lhs.current_sz != rhs.current_sz)
       {
          return false;
       }
-      for (const auto &k: lhs) 
+      for (const auto &k: lhs)
       {
          if (!rhs.count(k))
          {
             return false;
          }
-      } 
+      }
       return true;
    }
 
@@ -880,7 +882,7 @@ public:
    //returns iterator which points to the bucket which contains the data
    //if the data is not found, return iterator which points to end
    iterator find(const key_type &data_to_find) const
-   {     
+   {
       size_type index {hash(data_to_find)};
 
       Bucket* table_ptr {table + index};
@@ -900,7 +902,7 @@ public:
       }
       return iterator{end()};
    }
-   
+
    //phase 2
    //return true if data_to_be_inserted is inserted, false else
    std::pair<iterator,bool> insert(const key_type &data_to_be_inserted)
@@ -923,7 +925,7 @@ public:
          //std::cout << "added: " << data_to_be_inserted << " cuz first free" << std::endl; //DEBUG
          return {iterator{table_ptr, list_ptr},true}; //return iterator{table_ptr,list_ptr,true};
       }
-      
+
       //if the first bucket is not free
       while(list_ptr->mode == Mode::used)
       {
@@ -976,7 +978,7 @@ public:
       for(size_type i {0}; i<max_sz+1; ++i)
       {
          o << i << ": ";
-         
+
          if(list_ptr->mode == Mode::used)
          {
             do
@@ -986,7 +988,7 @@ public:
 
             }
             while(list_ptr != nullptr);
-            
+
          }
          else
          {
@@ -1012,7 +1014,19 @@ public:
 
 
 
+  const_iterator y() const
+  {
+    if(current_sz >= 3)
+    {
+      return const_iterator{this->table, this->table, true};
+    }
+    else
+    {
+      return const_iterator{this->table, this->table, false};
+    }
 
+
+  }
 
 
    //CLASS ITERATOR
@@ -1022,8 +1036,14 @@ public:
       //instance variables
       Bucket* table_iterator;
       Bucket* list_iterator;
-      
+      bool special = false;
+      //bool second_is_present = false;
+      bool second_is_bigger = false;
+      Bucket* last_one;
+      bool first_pass = false;
+
 public:
+
       using value_type = Key;
       using difference_type = std::ptrdiff_t;
       using reference = const value_type &;
@@ -1031,9 +1051,10 @@ public:
       using iterator_category = std::forward_iterator_tag;
 
       //constructor
-      explicit Iterator(Bucket* table_ptr = nullptr, Bucket* list_ptr = nullptr): 
-      table_iterator{table_ptr}, 
-      list_iterator{list_ptr}
+      explicit Iterator(Bucket* table_ptr = nullptr, Bucket* list_ptr = nullptr, bool special = false):
+      table_iterator{table_ptr},
+      list_iterator{list_ptr},
+      special{special}
       {
          if(table_iterator != nullptr)                //if table_iterator is pointing to the table
          {
@@ -1060,6 +1081,27 @@ public:
             list_iterator = table_iterator;
          }
 
+         if(special == true)
+         {
+           auto backup_list_iterator {list_iterator};
+           auto backup_table_iterator {table_iterator};
+
+           skip_iterator();
+
+           if(std::less<key_type>{}(list_iterator->data,backup_list_iterator->data)) //list_iterator < backup_list_iterator
+           {                                                                        //falls das neue kleiner ist als das alte
+             second_is_bigger = false;
+           }
+           else
+           {
+             second_is_bigger = true;
+           }
+
+           list_iterator = backup_list_iterator;
+           table_iterator = backup_table_iterator;
+
+         }
+
       }
 
 
@@ -1067,8 +1109,66 @@ public:
 
       Iterator &operator++()
       {
+        if(special == false)
+        {
          skip_iterator();
          return *this;
+        }
+
+
+
+        else //special == true
+        {
+          if(first_pass == false)
+          {
+            first_pass = true;
+            skip_iterator();
+            last_one = list_iterator;
+            return *this;
+          }
+          else //first_pass == false
+          {
+            if(second_is_bigger == true)
+            {
+              skip_iterator();
+              if(list_iterator->mode == Mode::end)
+              {
+                return *this;
+              }
+              while(std::less<key_type>{}(list_iterator->data, last_one->data)) // last_one < list_iter
+              {
+                skip_iterator();
+                if(list_iterator->mode == Mode::end)
+                {
+                  return *this;
+                }
+              }
+              last_one = list_iterator;
+              return *this;
+            }
+            else //second_bigger == false
+            {
+              skip_iterator();
+              if(list_iterator->mode == Mode::end)
+              {
+                return *this;
+              }
+              while(std::less<key_type>{}(last_one->data, list_iterator->data )) //list_iter < last_one
+              {
+                skip_iterator();
+                if(list_iterator->mode == Mode::end)
+                {
+                  return *this;
+                }
+              }
+              last_one = list_iterator;
+              return *this;
+            }
+
+          }
+        }
+        return *this;
+
       }
 
       Iterator operator++(int)
@@ -1077,7 +1177,7 @@ public:
          ++*this;
          return iterator_to_return;
       }
-
+private:
       //skips to the next entry in the table which has mode::used
       void skip_table()
       {
@@ -1108,7 +1208,7 @@ public:
          }
          return *this;
       }
-
+public:
       reference operator*() const
       {
          if(list_iterator->mode == Mode::end)
